@@ -31,6 +31,14 @@ package crypto
 // #include "sodium.h"
 import "C"
 
+import (
+	"crypto/rand"
+	"encoding/binary"
+	paillier "github.com/roasbeef/go-go-gadget-paillier"
+	"go.dedis.ch/kyber/v3"
+	"go.dedis.ch/kyber/v3/group/edwards25519"
+)
+
 func init() {
 	if C.sodium_init() == -1 {
 		panic("sodium_init() failed")
@@ -71,43 +79,123 @@ func GenerateVRFSecrets() *VRFSecrets {
 type (
 	// A VrfPrivkey is a private key used for producing VRF proofs.
 	// Specifically, we use a 64-byte ed25519 private key (the latter 32-bytes are the precomputed public key)
-	VrfPrivkey [64]byte
+	VrfPrivkey PrivKeys
 	// A VrfPubkey is a public key that can be used to verify VRF proofs.
-	VrfPubkey [32]byte
+	VrfPubkey PubKeys
 	// A VrfProof for a message can be generated with a secret key and verified against a public key, like a signature.
 	// Proofs are malleable, however, for a given message and public key, the VRF output that can be computed from a proof is unique.
-	VrfProof [80]byte
+	VrfProof ProofSignature
 	// VrfOutput is a 64-byte pseudorandom value that can be computed from a VrfProof.
 	// The VRF scheme guarantees that such output will be unique
-	VrfOutput [64]byte
+	VrfOutput []byte
 )
+
+type PrivKeys struct {
+	ProofDecKey *paillier.PrivateKey
+	VrfKey      kyber.Scalar
+}
+
+//func (k *PrivKeys) ToBytes() VrfPrivkey {
+//	keyBytes, _ := json.Marshal(k)
+//	fmt.Println(string(keyBytes))
+//	return keyBytes
+//}
+
+type PubKeys struct {
+	ProofEncKey *paillier.PublicKey
+	VrfKey      kyber.Point
+}
+
+//
+//func (k *PubKeys) ToBytes() VrfPubkey {
+//	keyBytes, _ := json.Marshal(k)
+//
+//	buf := &bytes.Buffer{}
+//	err := binary.Write(buf, binary.BigEndian, k)
+//	if err != nil {
+//	}
+//
+//	kk := &PubKeys{}
+//	binary.Read(buf, binary.BigEndian, kk)
+//
+//	fmt.Println(string(keyBytes))
+//	return keyBytes
+//}
+
+// VrfKeyGen generates a public key, private key, public key point, and cryptographic suite.
+func vrfKeyGenFromSeed(seed [32]byte) (*paillier.PrivateKey, kyber.Point, kyber.Scalar) {
+	bits := int(binary.BigEndian.Uint32(seed[:]))
+	bits = 1234
+	privKey, _ := paillier.GenerateKey(rand.Reader, bits)
+	suite := GetPP()
+	x := suite.Scalar().Pick(suite.XOF([]byte("x")))
+
+	v := suite.Point().Mul(x, nil)
+	//xBytes, _ := x.MarshalBinary()
+	//vBytes, _ := v.MarshalBinary()
+
+	//x2 := suite.Scalar()
+	//x2.UnmarshalBinary(xBytes)
+	//v = suite.Point()
+	//v.UnmarshalBinary(vBytes)
+	//fmt.Print(xBytes, vBytes)
+
+	return privKey, v, x
+}
 
 // VrfKeygenFromSeed deterministically generates a VRF keypair from 32 bytes of (secret) entropy.
 func VrfKeygenFromSeed(seed [32]byte) (pub VrfPubkey, priv VrfPrivkey) {
-	C.crypto_vrf_keypair_from_seed((*C.uchar)(&pub[0]), (*C.uchar)(&priv[0]), (*C.uchar)(&seed[0]))
-	return pub, priv
+	pk, v, x := vrfKeyGenFromSeed(seed)
+
+	pubKeys := PubKeys{
+		ProofEncKey: &pk.PublicKey,
+		VrfKey:      v,
+	}
+
+	privKeys := PrivKeys{
+		ProofDecKey: pk,
+		VrfKey:      x,
+	}
+
+	return VrfPubkey(pubKeys), VrfPrivkey(privKeys)
 }
 
 // VrfKeygen generates a random VRF keypair.
 func VrfKeygen() (pub VrfPubkey, priv VrfPrivkey) {
-	C.crypto_vrf_keypair((*C.uchar)(&pub[0]), (*C.uchar)(&priv[0]))
-	return pub, priv
+	return VrfKeygenFromSeed([32]byte{})
+}
+
+func GetPP() Suite {
+	if pp == nil {
+		pp = edwards25519.NewBlakeSHA256Ed25519()
+	}
+	return pp
+}
+
+// Suite defines the cryptographic suite interface.
+type Suite interface {
+	kyber.Group
+	kyber.Encoding
+	kyber.XOFFactory
 }
 
 // Pubkey returns the public key that corresponds to the given private key.
 func (sk VrfPrivkey) Pubkey() (pk VrfPubkey) {
-	C.crypto_vrf_sk_to_pk((*C.uchar)(&pk[0]), (*C.uchar)(&sk[0]))
-	return pk
+	x := sk
+	pks := PubKeys{
+		ProofEncKey: &x.ProofDecKey.PublicKey,
+		VrfKey:      GetPP().Point().Mul(sk.VrfKey, nil),
+	}
+	return VrfPubkey(pks)
 }
 
 func (sk VrfPrivkey) proveBytes(msg []byte) (proof VrfProof, ok bool) {
-	// &msg[0] will make Go panic if msg is zero length
-	m := (*C.uchar)(C.NULL)
-	if len(msg) != 0 {
-		m = (*C.uchar)(&msg[0])
-	}
-	ret := C.crypto_vrf_prove((*C.uchar)(&proof[0]), (*C.uchar)(&sk[0]), (*C.uchar)(m), (C.ulonglong)(len(msg)))
-	return proof, ret == 0
+	pk := sk.Pubkey()
+	_, sig := RandGen(GetPP(), msg, sk, pk.VrfKey, pk.ProofEncKey)
+
+	sig2 := ProofDec(sig, sk.ProofDecKey)
+
+	return VrfProof(*sig2), true
 }
 
 // Prove constructs a VRF Proof for a given Hashable.
@@ -119,19 +207,13 @@ func (sk VrfPrivkey) Prove(message Hashable) (proof VrfProof, ok bool) {
 // Hash converts a VRF proof to a VRF output without verifying the proof.
 // TODO: Consider removing so that we don't accidentally hash an unverified proof
 func (proof VrfProof) Hash() (hash VrfOutput, ok bool) {
-	ret := C.crypto_vrf_proof_to_hash((*C.uchar)(&hash[0]), (*C.uchar)(&proof[0]))
-	return hash, ret == 0
+	return hash2(GetPP(), proof.Gamma), true
 }
 
 func (pk VrfPubkey) verifyBytes(proof VrfProof, msg []byte) (bool, VrfOutput) {
-	var out VrfOutput
-	// &msg[0] will make Go panic if msg is zero length
-	m := (*C.uchar)(C.NULL)
-	if len(msg) != 0 {
-		m = (*C.uchar)(&msg[0])
-	}
-	ret := C.crypto_vrf_verify((*C.uchar)(&out[0]), (*C.uchar)(&pk[0]), (*C.uchar)(&proof[0]), (*C.uchar)(m), (C.ulonglong)(len(msg)))
-	return ret == 0, out
+	sig := ProofSignature(proof)
+
+	return Verify(GetPP(), pk.VrfKey, msg, &sig)
 }
 
 // Verify checks a VRF proof of a given Hashable. If the proof is valid the pseudorandom VrfOutput will be returned.

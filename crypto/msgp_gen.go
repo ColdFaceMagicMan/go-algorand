@@ -3196,10 +3196,10 @@ func (z *VRFSecrets) MarshalMsg(b []byte) (o []byte) {
 	// map header, size 2
 	// string "PK"
 	o = append(o, 0x82, 0xa2, 0x50, 0x4b)
-	o = msgp.AppendBytes(o, ((*z).PK)[:])
+	//o = msgp.AppendBytes(o, ((*z).PK)[:])
 	// string "SK"
 	o = append(o, 0xa2, 0x53, 0x4b)
-	o = msgp.AppendBytes(o, ((*z).SK)[:])
+	//o = msgp.AppendBytes(o, ((*z).SK)[:])
 	return
 }
 
@@ -3228,7 +3228,7 @@ func (z *VRFSecrets) UnmarshalMsgWithState(bts []byte, st msgp.UnmarshalState) (
 		}
 		if zb0003 > 0 {
 			zb0003--
-			bts, err = msgp.ReadExactBytes(bts, ((*z).PK)[:])
+			//bts, err = msgp.ReadExactBytes(bts, ((*z).PK)[:])
 			if err != nil {
 				err = msgp.WrapError(err, "struct-from-array", "PK")
 				return
@@ -3236,7 +3236,7 @@ func (z *VRFSecrets) UnmarshalMsgWithState(bts []byte, st msgp.UnmarshalState) (
 		}
 		if zb0003 > 0 {
 			zb0003--
-			bts, err = msgp.ReadExactBytes(bts, ((*z).SK)[:])
+			//bts, err = msgp.ReadExactBytes(bts, ((*z).SK)[:])
 			if err != nil {
 				err = msgp.WrapError(err, "struct-from-array", "SK")
 				return
@@ -3266,13 +3266,13 @@ func (z *VRFSecrets) UnmarshalMsgWithState(bts []byte, st msgp.UnmarshalState) (
 			}
 			switch string(field) {
 			case "PK":
-				bts, err = msgp.ReadExactBytes(bts, ((*z).PK)[:])
+				//bts, err = msgp.ReadExactBytes(bts, ((*z).PK)[:])
 				if err != nil {
 					err = msgp.WrapError(err, "PK")
 					return
 				}
 			case "SK":
-				bts, err = msgp.ReadExactBytes(bts, ((*z).SK)[:])
+				//bts, err = msgp.ReadExactBytes(bts, ((*z).SK)[:])
 				if err != nil {
 					err = msgp.WrapError(err, "SK")
 					return
@@ -3306,7 +3306,7 @@ func (z *VRFSecrets) Msgsize() (s int) {
 
 // MsgIsZero returns whether this is a zero value
 func (z *VRFSecrets) MsgIsZero() bool {
-	return ((*z).PK == (VrfPubkey{})) && ((*z).SK == (VrfPrivkey{}))
+	return false
 }
 
 // MaxSize returns a maximum valid message size for this message type
@@ -3364,7 +3364,7 @@ func (z *VrfOutput) Msgsize() (s int) {
 
 // MsgIsZero returns whether this is a zero value
 func (z *VrfOutput) MsgIsZero() bool {
-	return (*z) == (VrfOutput{})
+	return (*z) == (nil)
 }
 
 // MaxSize returns a maximum valid message size for this message type
@@ -3377,7 +3377,7 @@ func VrfOutputMaxSize() (s int) {
 // MarshalMsg implements msgp.Marshaler
 func (z *VrfPrivkey) MarshalMsg(b []byte) (o []byte) {
 	o = msgp.Require(b, z.Msgsize())
-	o = msgp.AppendBytes(o, (*z)[:])
+	//o = msgp.AppendBytes(o, (*z)[:])
 	return
 }
 
@@ -3393,7 +3393,7 @@ func (z *VrfPrivkey) UnmarshalMsgWithState(bts []byte, st msgp.UnmarshalState) (
 		return
 	}
 	st.AllowableDepth--
-	bts, err = msgp.ReadExactBytes(bts, (*z)[:])
+	//bts, err = msgp.ReadExactBytes(bts, (*z)[:])
 	if err != nil {
 		err = msgp.WrapError(err)
 		return
@@ -3418,7 +3418,7 @@ func (z *VrfPrivkey) Msgsize() (s int) {
 
 // MsgIsZero returns whether this is a zero value
 func (z *VrfPrivkey) MsgIsZero() bool {
-	return (*z) == (VrfPrivkey{})
+	return false
 }
 
 // MaxSize returns a maximum valid message size for this message type
@@ -3431,7 +3431,7 @@ func VrfPrivkeyMaxSize() (s int) {
 // MarshalMsg implements msgp.Marshaler
 func (z *VrfProof) MarshalMsg(b []byte) (o []byte) {
 	o = msgp.Require(b, z.Msgsize())
-	o = msgp.AppendBytes(o, (*z)[:])
+	//o = msgp.AppendBytes(o, (*z)[:])
 	return
 }
 
@@ -3447,7 +3447,7 @@ func (z *VrfProof) UnmarshalMsgWithState(bts []byte, st msgp.UnmarshalState) (o 
 		return
 	}
 	st.AllowableDepth--
-	bts, err = msgp.ReadExactBytes(bts, (*z)[:])
+	//bts, err = msgp.ReadExactBytes(bts, (*z)[:])
 	if err != nil {
 		err = msgp.WrapError(err)
 		return
@@ -3472,7 +3472,7 @@ func (z *VrfProof) Msgsize() (s int) {
 
 // MsgIsZero returns whether this is a zero value
 func (z *VrfProof) MsgIsZero() bool {
-	return (*z) == (VrfProof{})
+	return false
 }
 
 // MaxSize returns a maximum valid message size for this message type
@@ -3485,7 +3485,7 @@ func VrfProofMaxSize() (s int) {
 // MarshalMsg implements msgp.Marshaler
 func (z *VrfPubkey) MarshalMsg(b []byte) (o []byte) {
 	o = msgp.Require(b, z.Msgsize())
-	o = msgp.AppendBytes(o, (*z)[:])
+	//o = msgp.AppendBytes(o, (*z)[:])
 	return
 }
 
@@ -3501,7 +3501,7 @@ func (z *VrfPubkey) UnmarshalMsgWithState(bts []byte, st msgp.UnmarshalState) (o
 		return
 	}
 	st.AllowableDepth--
-	bts, err = msgp.ReadExactBytes(bts, (*z)[:])
+	//bts, err = msgp.ReadExactBytes(bts, (*z)[:])
 	if err != nil {
 		err = msgp.WrapError(err)
 		return
@@ -3526,7 +3526,7 @@ func (z *VrfPubkey) Msgsize() (s int) {
 
 // MsgIsZero returns whether this is a zero value
 func (z *VrfPubkey) MsgIsZero() bool {
-	return (*z) == (VrfPubkey{})
+	return false
 }
 
 // MaxSize returns a maximum valid message size for this message type
