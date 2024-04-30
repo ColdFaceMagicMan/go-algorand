@@ -2,7 +2,6 @@ package crypto
 
 import (
 	"bytes"
-	"encoding/json"
 	"go.dedis.ch/kyber/v3"
 )
 
@@ -15,34 +14,47 @@ type ProofSignature struct {
 	Theta []byte
 }
 
-var _ = json.Marshaler(&ProofSignature{})
-var _ = json.Unmarshaler(&ProofSignature{})
-
-func (p *ProofSignature) MarshalJSON() ([]byte, error) {
-	b := []byte{}
+func (p *ProofSignature) MarshalJSON() (proof VrfProof, err error) {
+	buf := bytes.Buffer{}
 
 	g, _ := p.Gamma.MarshalBinary()
-	b = append(b, g...)
-	b = append(b, '$')
-	c, _ := p.C.MarshalBinary()
-	b = append(b, c...)
-	b = append(b, '$')
-	b = append(b, p.S...)
-	b = append(b, '$')
-	b = append(b, p.Delta...)
-	b = append(b, '$')
-	b = append(b, p.Theta...)
+	buf.Write(g)
 
-	return b, nil
+	c, _ := p.C.MarshalBinary()
+	buf.Write(c)
+
+	buf.Write(p.S)
+	buf.Write(p.Delta)
+	buf.Write(p.Theta)
+
+	copy(proof[:], buf.Bytes())
+
+	return
 }
 
-func (p *ProofSignature) UnmarshalJSON(b []byte) error {
+func (p *ProofSignature) UnmarshalJSON(proofBytes VrfProof) error {
+	data := proofBytes[:]
 
-	bs := bytes.Split(b, []byte{'&'})
-	p.Gamma.UnmarshalBinary(bs[0])
-	p.C.UnmarshalBinary(bs[1])
-	p.S = bs[2]
-	p.Delta = bs[3]
-	p.Delta = bs[4]
+	p.Gamma = GetPP().Point()
+	p.Gamma.UnmarshalBinary(data[:32])
+	data = data[32:]
+	p.C = GetPP().Scalar()
+	p.C.UnmarshalBinary(data[:32])
+	data = data[32:]
+
+	if len(data) < 256 {
+		p.S = data[:32]
+		data = data[32:]
+		p.Delta = data[:32]
+		data = data[32:]
+		p.Theta = data[:64]
+	} else {
+		p.S = data[:256]
+		data = data[256:]
+		p.Delta = data[:256]
+		data = data[256:]
+		p.Theta = data[:256]
+	}
+
 	return nil
 }

@@ -137,8 +137,11 @@ func (sk VrfPrivkey) proveBytes(msg []byte) (proof VrfProof, ok bool) {
 	prvKey.UnmarshalBinary(sk)
 
 	sig2 := ProofDec(sig, prvKey.ProofDecKey)
+	proof, _ = sig2.MarshalJSON()
+	sig3 := ProofSignature{}
+	sig3.UnmarshalJSON(proof)
 
-	return VrfProof(*sig2), true
+	return proof, true
 }
 
 // Prove constructs a VRF Proof for a given Hashable.
@@ -150,11 +153,19 @@ func (sk VrfPrivkey) Prove(message Hashable) (proof VrfProof, ok bool) {
 // Hash converts a VRF proof to a VRF output without verifying the proof.
 // TODO: Consider removing so that we don't accidentally hash an unverified proof
 func (proof VrfProof) Hash() (hash VrfOutput, ok bool) {
-	return hash2(GetPP(), proof.Gamma), true
+	sig := ProofSignature{}
+	sig.UnmarshalJSON(proof)
+
+	tmp := hash2(GetPP(), sig.Gamma)
+	copy(hash[:], tmp)
+
+	return hash, true
 }
 
 func (pk VrfPubkey) verifyBytes(proof VrfProof, msg []byte) (bool, VrfOutput) {
-	sig := ProofSignature(proof)
+	sig := ProofSignature{}
+	sig.UnmarshalJSON(proof)
+
 	p := PubKeys{}
 	p.UnmarshalBinary(pk)
 	return Verify(GetPP(), p.VrfKey, msg, &sig)

@@ -20,6 +20,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -127,6 +128,11 @@ func BenchmarkVrfVerify(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		fmt.Println(pks[i].verifyBytes(proofs[i], strs[i]))
+		ok, op := pks[i].verifyBytes(proofs[i], strs[i])
+		if !ok {
+			log.Fatal("not ok")
+			break
+		}
+		fmt.Println(len(op))
 	}
 }

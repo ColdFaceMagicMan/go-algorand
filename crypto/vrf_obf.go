@@ -146,7 +146,7 @@ func ProofDec(piBar *ProofSignature, privKey *paillier.PrivateKey) *ProofSignatu
 }
 
 // Verify checks the validity of a signature.
-func Verify(suite Suite, v kyber.Point, m []byte, pi *ProofSignature) (bool, VrfOutput) {
+func Verify(suite Suite, v kyber.Point, m []byte, pi *ProofSignature) (ok bool, outPut VrfOutput) {
 	gamma := pi.Gamma
 	c := pi.C
 	s := suite.Scalar()
@@ -182,7 +182,9 @@ func Verify(suite Suite, v kyber.Point, m []byte, pi *ProofSignature) (bool, Vrf
 		fmt.Println("d3 is not equal to c")
 	}
 
-	return result, yCalc
+	copy(outPut[:], yCalc)
+
+	return result, outPut
 }
 
 // Obf generates an obfuscated signature for a given message using the provided cryptographic suite.

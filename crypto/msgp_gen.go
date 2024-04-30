@@ -3364,7 +3364,7 @@ func (z *VrfOutput) Msgsize() (s int) {
 
 // MsgIsZero returns whether this is a zero value
 func (z *VrfOutput) MsgIsZero() bool {
-	return (*z) == (nil)
+	return (*z) == (VrfOutput{})
 }
 
 // MaxSize returns a maximum valid message size for this message type
