@@ -37,7 +37,6 @@ require (
 	github.com/multiformats/go-multiaddr v0.10.1
 	github.com/multiformats/go-multiaddr-dns v0.3.1
 	github.com/olivere/elastic v6.2.14+incompatible
-	github.com/roasbeef/go-go-gadget-paillier v0.0.0-20181009074315-14f1f86b6000
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.4
@@ -52,6 +51,7 @@ require (
 )
 
 require (
+	github.com/ColdFaceMagicMan/go-go-gadget-paillier v0.0.0-20240430155614-4184b272ca56 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

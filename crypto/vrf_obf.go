@@ -2,16 +2,30 @@ package crypto
 
 import (
 	"fmt"
-	paillier "github.com/roasbeef/go-go-gadget-paillier"
+	paillier "github.com/ColdFaceMagicMan/go-go-gadget-paillier"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/group/edwards25519"
 	"go.dedis.ch/kyber/v3/sign/schnorr"
 )
 
+// Suite defines the cryptographic suite interface.
+type Suite interface {
+	kyber.Group
+	kyber.Encoding
+	kyber.XOFFactory
+}
+
 var pp *edwards25519.SuiteEd25519
 
 func init() {
 	pp = edwards25519.NewBlakeSHA256Ed25519()
+}
+
+func GetPP() Suite {
+	if pp == nil {
+		pp = edwards25519.NewBlakeSHA256Ed25519()
+	}
+	return pp
 }
 
 // hash1 computes the hash of a message using the provided cryptographic suite.
@@ -59,8 +73,9 @@ func hash4(suite Suite, x kyber.Scalar) kyber.Scalar {
 
 // RandGen generates a random signature for a given message using the provided cryptographic suite.
 func RandGen(suite Suite, m []byte, pr VrfPrivkey, v kyber.Point, publicKey *paillier.PublicKey) ([]byte, *ProofSignature) {
-
-	x := pr.VrfKey
+	prvKry := PrivKeys{}
+	prvKry.UnmarshalBinary(pr)
+	x := prvKry.VrfKey
 	x = suite.Scalar().Pick(suite.XOF([]byte("x")))
 
 	h := hash1(suite, m)
@@ -83,6 +98,7 @@ func RandGen(suite Suite, m []byte, pr VrfPrivkey, v kyber.Point, publicKey *pai
 	y := hash2(suite, gamma)
 
 	sb, _ := s.MarshalBinary()
+
 	sBar, err := paillier.Encrypt(publicKey, sb)
 	deltaBar, err := paillier.Encrypt(publicKey, delta0b)
 	thetaBar, err := paillier.Encrypt(publicKey, theta)
