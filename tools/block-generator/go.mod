@@ -16,6 +16,7 @@ require (
 )
 
 require (
+	github.com/ColdFaceMagicMan/go-go-gadget-paillier v0.0.0-20240430155614-4184b272ca56 // indirect
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/algorand/falcon v0.1.0 // indirect
 	github.com/algorand/go-sumhash v0.1.0 // indirect
@@ -124,6 +125,8 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	go.dedis.ch/fixbuf v1.0.3 // indirect
+	go.dedis.ch/kyber/v3 v3.1.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/dig v1.17.0 // indirect
 	go.uber.org/fx v1.20.0 // indirect

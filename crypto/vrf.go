@@ -131,10 +131,12 @@ func (sk VrfPrivkey) proveBytes(msg []byte) (proof VrfProof, ok bool) {
 	pkBytes := sk.Pubkey()
 	pk := PubKeys{}
 	pk.UnmarshalBinary(pkBytes)
-	_, sig := RandGen(GetPP(), msg, sk, pk.VrfKey, pk.ProofEncKey)
+	//_, sig := RandGen(GetPP(), msg, sk, pk.VrfKey, pk.ProofEncKey)
 
 	prvKey := PrivKeys{}
 	prvKey.UnmarshalBinary(sk)
+
+	_, sig := Obf(GetPP(), msg, prvKey.VrfKey, pk.VrfKey, pk.ProofEncKey)
 
 	sig2 := ProofDec(sig, prvKey.ProofDecKey)
 	proof, _ = sig2.MarshalJSON()

@@ -128,11 +128,11 @@ func BenchmarkVrfVerify(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		ok, op := pks[i].verifyBytes(proofs[i], strs[i])
+		ok, _ := pks[i].verifyBytes(proofs[i], strs[i])
 		if !ok {
 			log.Fatal("not ok")
 			break
 		}
-		fmt.Println(len(op))
+		//fmt.Println(len(op))
 	}
 }

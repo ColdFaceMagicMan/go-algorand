@@ -3,6 +3,7 @@ module github.com/algorand/go-algorand
 go 1.20
 
 require (
+	github.com/ColdFaceMagicMan/go-go-gadget-paillier v0.0.0-20240430155614-4184b272ca56
 	github.com/DataDog/zstd v1.5.2
 	github.com/algorand/avm-abi v0.2.0
 	github.com/algorand/falcon v0.1.0
@@ -51,7 +52,6 @@ require (
 )
 
 require (
-	github.com/ColdFaceMagicMan/go-go-gadget-paillier v0.0.0-20240430155614-4184b272ca56 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

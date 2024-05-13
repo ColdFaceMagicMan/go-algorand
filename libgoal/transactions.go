@@ -206,6 +206,8 @@ func (c *Client) SignAndBroadcastTransaction(walletHandle, pw []byte, utx transa
 	return c.BroadcastTransaction(stx)
 }
 
+const keySize = 160
+
 // generateRegistrationTransaction returns a transaction object for registering a Participation with its parent this is
 // similar to account.Participation.GenerateRegistrationTransaction.
 func generateRegistrationTransaction(part model.ParticipationKey, fee basics.MicroAlgos, txnFirstValid, txnLastValid basics.Round, leaseBytes [32]byte) (transactions.Transaction, error) {
@@ -221,11 +223,11 @@ func generateRegistrationTransaction(part model.ParticipationKey, fee basics.Mic
 	var votePk [32]byte
 	copy(votePk[:], part.Key.VoteParticipationKey[:])
 
-	if len(part.Key.SelectionParticipationKey) != 32 {
+	if len(part.Key.SelectionParticipationKey) != keySize {
 		return transactions.Transaction{}, fmt.Errorf("selection key is the wrong size, should be 32 but it is %d", len(part.Key.VoteParticipationKey))
 	}
 
-	var selectionPk [32]byte
+	var selectionPk [keySize]byte
 	copy(selectionPk[:], part.Key.SelectionParticipationKey[:])
 
 	if part.Key.StateProofKey == nil {
